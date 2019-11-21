@@ -1,0 +1,2 @@
+# InsertTexttoMysql
+将txt文件中的insert语句读出来插入mysql中
