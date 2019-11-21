@@ -1,0 +1,15 @@
+E:\Code\VisualStudio\C#\数据库framework版本\bin\Debug\数据库framework版本.exe.config
+E:\Code\VisualStudio\C#\数据库framework版本\bin\Debug\数据库framework版本.exe
+E:\Code\VisualStudio\C#\数据库framework版本\bin\Debug\数据库framework版本.pdb
+E:\Code\VisualStudio\C#\数据库framework版本\obj\Debug\数据库framework版本.csprojAssemblyReference.cache
+E:\Code\VisualStudio\C#\数据库framework版本\obj\Debug\数据库framework版本.Properties.Resources.resources
+E:\Code\VisualStudio\C#\数据库framework版本\obj\Debug\数据库framework版本.csproj.GenerateResource.cache
+E:\Code\VisualStudio\C#\数据库framework版本\obj\Debug\数据库framework版本.exe
+E:\Code\VisualStudio\C#\数据库framework版本\obj\Debug\数据库framework版本.pdb
+E:\Code\VisualStudio\C#\数据库framework版本\bin\Debug\MySql.Data.dll
+E:\Code\VisualStudio\C#\数据库framework版本\bin\Debug\Google.Protobuf.dll
+E:\Code\VisualStudio\C#\数据库framework版本\bin\Debug\BouncyCastle.Crypto.dll
+E:\Code\VisualStudio\C#\数据库framework版本\bin\Debug\Renci.SshNet.dll
+E:\Code\VisualStudio\C#\数据库framework版本\bin\Debug\MySql.Data.xml
+E:\Code\VisualStudio\C#\数据库framework版本\obj\Debug\数据库framework版本.Form1.resources
+E:\Code\VisualStudio\C#\数据库framework版本\obj\Debug\数据库framework版本.csproj.CopyComplete
