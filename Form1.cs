@@ -72,9 +72,11 @@ namespace 数据库framework版本
 
                 StreamReader sr = new StreamReader(originFilePath);
                 //string a = sr.ReadToEnd();    //全部读完
+                string temp = "";
 
                 string a = sr.ReadLine();       //一次读一行
-
+                //temp = temp + a;s
+                int flag = 0;
                 while (null != a)
                 {
                     bool month;
@@ -89,18 +91,57 @@ namespace 数据库framework版本
 
                     //a = Regex.Replace(a, @"^\s+\n$", "");
                     //MessageBox.Show(a);
+                    /*
+                     * 这是原来的代码
+                     * 
                     if (a.Length != 0)
                     {
                         //正则表达式搞不定 ，只好使用这个方法 ，已知空行的Length=0 这样只有长度不为0的时候才进行写入
                         a = Regex.Replace(a, @"(to_date)(\(\'\d{2}-\d)(\D+)(-)(\d{2}\',\')(DD-MON-RR)", "str_to_date$2 $4$5%d-%m-%y");
-
-                        //向新文件末尾进行添加，如果新文件不存在 则新建 
+                        //MessageBox.Show(Convert.ToString(a.Length));
+                        //向新文件末尾进行添加，如果新文件不存在 则新建
                         StreamWriter readTxt = File.AppendText(changed);
                         readTxt.WriteLine(a);           //这里不能写成Write() 写成了Write就没有空格了 对于回车的会出现错误
                         readTxt.Close();
-                        
+
+                    }
+
+                    */
+                    
+                    if (Regex.IsMatch(a, @"Insert into EXPORT_TABLE.+$"))
+                    {
+  
+                        a = Regex.Replace(a, @"(to_date)(\(\'\d{2}-\d)(\D+)(-)(\d{2}\',\')(DD-MON-RR)", "str_to_date$2 $4$5%d-%m-%y");
+                        while (!Regex.IsMatch(a, @"\'\)\;"))
+                        {
+                            if (a.Length != 0)
+                            {
+                                if (flag == 0) { temp = temp + a; flag = 1; }
+                                else
+                                {
+                                    temp = temp + "\r\n" + a;
+                                }
+
+                            }
+                            a = sr.ReadLine();
+                        }
+                        if (Regex.IsMatch(a, @"\'\)\;"))
+                        {
+                            temp = temp + "\r\n"+a;
+                            if (temp.Length < 1024)
+                            {
+                                StreamWriter readTxt = File.AppendText(changed);
+                                readTxt.Write(temp);           //这里不能写成Write() 写成了Write就没有空格了 对于回车的会出现错误
+                                readTxt.Close();
+                           
+                            }
+                            temp = "";
+                        }
                     }
                     a = sr.ReadLine();
+                    /*这是原来的代码
+                    a = sr.ReadLine();
+                    */
                 }
                 sr.Close();     //读取结束 关闭原来的文件
             }
@@ -124,7 +165,8 @@ namespace 数据库framework版本
             DateTime start = System.DateTime.Now;
 
             //连接数据库
-            string str = "server=localhost; User Id=root; password=qwer123456789; Database=acars;";
+            string str = "server=localhost; User Id=root; password=qwer123456789; Database=world;";
+            int counts = 0;   //string最大可以存储的次数
 
             try
             {
@@ -155,44 +197,82 @@ namespace 数据库framework版本
                     /*
                      * 刚进去肯定能匹配 找到一个insert 
                      */
+                    //readTxt.WriteLine(temp3);           //这里不能写成Write() 写成了Write就没有空格了 对于回车的会出现错误
+    
+
                     while (month = Regex.IsMatch(a, @"Insert into EXPORT_TABLE.+$"))   //匹配 以Insert 开头一直到这一行的结束
                     {
                         string temp4 = Regex.Match(a, @"Insert into EXPORT_TABLE.+$").Value;   //把这个存储在 temp4
-                        temp3 = temp3 + temp4;      //连接起来
+                        
+
+                        //这里也是读入成功的
+      
+                        temp3 = temp3 + temp4+"\r\n";      //连接起来  这里使用\n不行
+                        //
+                        //readTxt.Write(temp4);
+                        //
                         a = sr.ReadLine();         //再读一行 一直到读到结束标志为止。
 
                         //读到结束标志的上一行 把这些全部都连接在 temp3 后面
                         while (a != null && (Regex.IsMatch(a, @"\'\)\;")==false))    //匹配结尾的 ');标志
                         {
-                            temp3 += a;
+                            temp3 = temp3 +a+ "\r\n";     
                             a = sr.ReadLine();
+                            //
+                            //readTxt.Write(a);
+                            //
+
                         }
+                        //MessageBox.Show(temp3);
+                        //StreamWriter readTxt = File.AppendText(@"E:\Code\temp5.txt");
+                        //readTxt.Write(temp3);           //这里不能写成Write() 写成了Write就没有空格了 对于回车的会出现错误
+                        //readTxt.Close();
+                        //MessageBox.Show("文件另存为成功");
                         //跳出循环肯定是匹配到结尾了 因为这个文件的末尾一定有一个'); 先是碰到 这个 再遇到结束符的
                         if (Regex.IsMatch(a, @"\'\);"))  
                         {
-                            temp3 += a;     //现在已经是完整的一段了，可以进行数据库的插入操作了。
+                            temp3 = temp3 + a;
 
-
-                            //去掉多余的空格这些 便于数据库的存储.这里显示是有问题 但是输出到文本框没有问题
-                            temp3 = Regex.Replace(temp3, @"\s+", " ");    //多个空格 以一个空格进行代替
-
-                            //把这一段导入数据库里面
-                            MySqlConnection conn = new MySqlConnection(str);
-                            try
+                            counts++;
+                            if (counts == 100)
                             {
-                                conn.Open();
-                                MySqlCommand cmd = new MySqlCommand(temp3, conn);
-                                cmd.ExecuteNonQuery();
-                                conn.Close();
-                                //MessageBox.Show("数据插入成功");
-                                
+
+
+
+                                //temp3 += a;     //现在已经是完整的一段了，可以进行数据库的插入操作了。
+                                //MessageBox.Show(temp3);
+                                //
+
+                                //
+                                //去掉多余的空格这些 便于数据库的存储.这里显示是有问题 但是输出到文本框没有问题
+                                //temp3 = Regex.Replace(temp3, @"\s+", " ");    //多个空格 以一个空格进行代替
+
+                                //把这一段导入数据库里面
+
+
+
+
+                                MySqlConnection conn = new MySqlConnection(str);
+                                try
+                                {
+                                    conn.Open();
+                                    MySqlCommand cmd = new MySqlCommand(temp3, conn);
+                                    cmd.ExecuteNonQuery();
+                                    conn.Close();
+                                    //MessageBox.Show("数据插入成功");
+
+                                }
+                                catch (Exception e4)
+                                {
+                                    //MessageBox.Show("数据插入失败：" + e4.Message);
+                                }
+                                //temp3还需要接受缓存新的数据 所以需要清空
+                                //MessageBox.Show(temp3);
+                                temp3 = "";
+                                counts = 0;
+
                             }
-                            catch (Exception e4)
-                            {
-                                //MessageBox.Show("数据插入失败：" + e4.Message);  
-                            }
-                            //temp3还需要接受缓存新的数据 所以需要清空
-                            temp3 = "";
+    
                         }
                     }
                     a = sr.ReadLine();  //新读入一行数据
@@ -220,6 +300,84 @@ namespace 数据库framework版本
             this.Text = "txt文件导入mysql";
             //this.BackColor = Color.Red; //设置背景颜色
             this.BackgroundImage = Image.FromFile(@"./123.jpg");//相对路径为bin/Debug
+        }
+
+        private void button4_Click(object sender, EventArgs e)
+        {
+            //string str = "server=localhost; User Id=root; password=qwer123456789; Database=acars;";
+            //MySqlConnection conn = new MySqlConnection(str);
+            //conn.Open();
+            //MySqlCommand cmd = new MySqlCommand(temp3, conn);
+            //cmd.ExecuteNonQuery();
+            //conn.Close();
+
+
+
+            try
+            {
+                OpenFileDialog originFile = new OpenFileDialog();
+                originFile.ShowDialog();
+                var originFilePath = originFile.FileName;
+                StreamReader sr = new StreamReader(originFilePath);
+
+                string a = sr.ReadLine();
+                while (!Regex.IsMatch(a, @"Insert into EXPORT_TABLE"))
+                {
+                    a = sr.ReadLine();
+                }
+                string temp3 = "";
+                int counts = 0;
+                while (null != a)
+                {
+                    bool month;
+                    while (month = Regex.IsMatch(a, @"Insert into EXPORT_TABLE.+$"))   //匹配 以Insert 开头一直到这一行的结束
+                    {
+                        string temp4 = Regex.Match(a, @"Insert into EXPORT_TABLE.+$").Value;   //把这个存储在 temp4
+                        temp3 = temp3 + temp4;      //连接起来
+                        a = sr.ReadLine();         //再读一行 一直到读到结束标志为止。
+
+                        //读到结束标志的上一行 把这些全部都连接在 temp3 后面
+                        while (a != null && (Regex.IsMatch(a, @"\'\)\;") == false))    //匹配结尾的 ');标志
+                        {
+                            temp3 += a;
+                            a = sr.ReadLine();
+                        }
+                        //跳出循环肯定是匹配到结尾了 因为这个文件的末尾一定有一个'); 先是碰到 这个 再遇到结束符的
+                        if (Regex.IsMatch(a, @"\'\);"))
+                        {
+                            temp3 += a;     //现在已经是完整的一段了，可以进行数据库的插入操作了。
+                            //MessageBox.Show(temp3);
+
+                            //去掉多余的空格这些 便于数据库的存储.这里显示是有问题 但是输出到文本框没有问题
+                            //temp3 = Regex.Replace(temp3, @"\s+", " ");    //多个空格 以一个空格进行代替
+
+
+                            //将这个存储在另外一个txt文件里面
+                            var changed = Regex.Replace(originFilePath, @"\w+.txt", "temp3.txt");
+                            StreamWriter readTxt = File.AppendText(changed);
+                            readTxt.WriteLine(temp3);           //这里不能写成Write() 写成了Write就没有空格了 对于回车的会出现错误
+                            readTxt.Close();
+                            MessageBox.Show("转存成功");
+
+                            //把这一段导入数据库里面
+                            
+                            temp3 = "";
+                        }
+                    }
+                    a = sr.ReadLine();  //新读入一行数据
+                }
+                sr.Close();   //文件全部读取完毕 关闭文件
+
+
+            }
+            catch (MySqlException ex)
+            {
+                MessageBox.Show(ex.Message);
+
+            }
+
+
+
         }
     }
 }
